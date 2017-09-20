@@ -49,7 +49,7 @@ if !ARGV.any? || ARGV[0] == "-h"
 end
 
 ARGV.each do |file|
-  RiCal.parse(File.open(file)).first.events.each do |ev|
+  RiCal.parse(File.open(file, "rb")).first.events.each do |ev|
     ev.occurrences(:count => 10).each do |oc|
       begin
         start = oc.dtstart.to_time.getlocal
@@ -72,8 +72,8 @@ upcoming.sort_by{|u| u.dtstart.to_time.getlocal }.reverse.each do |ev|
   finish = ev.dtend.to_time.getlocal
 
   weeks = 0
-  days = ((start - Time.now) / (60 * 60 * 24)).ceil
-  if days > 7
+  days = (start.to_date - Date.today).to_i
+  if days >= 7
     weeks = (days.to_f / 7.0).floor
     days = days - (weeks * 7)
   end
@@ -81,7 +81,7 @@ upcoming.sort_by{|u| u.dtstart.to_time.getlocal }.reverse.each do |ev|
   out = ""
   if weeks == 0 && days == 0
     out << BOLD
-  elsif weeks == 1
+  elsif weeks <= 1
     out << GRAY
   elsif weeks > 1
     out << LIGHTGRAY
@@ -116,7 +116,7 @@ upcoming.sort_by{|u| u.dtstart.to_time.getlocal }.reverse.each do |ev|
     out << " at #{start.strftime("%H:%M")}"
 
     if start.to_date == Time.now.to_date
-      mins = ((Time.now - start) / 60).floor
+      mins = ((start - Time.now) / 60).floor
       if start < Time.now
         out << " (#{mins} minute#{mins == 1 ? "" : "s"} ago)"
       else
